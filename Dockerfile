@@ -26,11 +26,14 @@ RUN ln -fs /opt/julia-0.5.1 /opt/julia
 
 ENV PATH /opt/julia/bin:$PATH
 
-RUN /opt/julia/bin/julia -e 'Pkg.add("IJulia")'
-RUN /opt/julia/bin/julia -e 'Pkg.build("IJulia")'
+# Install IJulia with using installed anaconda, and then precompile it
+RUN CONDA_JL_HOME=/opt/conda /opt/julia/bin/julia -e 'Pkg.add("IJulia")'
+RUN /opt/julia/bin/julia -e 'Pkg.build("IJulia");using IJulia'
 
+# Install PyPlot with using installed matplotlib, and then precompile it
 RUN PYTHON=/opt/conda/bin/python /opt/julia/bin/julia -e 'Pkg.add("PyPlot")'
 # RUN /opt/julia/bin/julia -e 'Pkg.build("PyPlot")'
+RUN /opt/julia/bin/julia -e 'using PyPlot'
 
 # Define working directory.
 WORKDIR /opt/notebooks
