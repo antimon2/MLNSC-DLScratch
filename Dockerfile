@@ -38,31 +38,26 @@ RUN PYTHON=/opt/conda/bin/python /opt/julia/bin/julia -e 'Pkg.add("PyPlot")'
 # RUN /opt/julia/bin/julia -e 'Pkg.build("PyPlot")'
 RUN /opt/julia/bin/julia -e 'using PyPlot'
 
-# v0.3: add_iruby: install rvm
-RUN curl -L https://get.rvm.io | bash -s stable
-RUN /bin/bash -l -c "rvm requirements"
-
 # v0.3: add_iruby: install ruby-2.4.0
-RUN /bin/bash -l -c "rvm install 2.4.0"
-RUN cd / && /bin/bash -l -c "rvm --ruby-version use 2.4.0@global"
-RUN cd / && /bin/bash -l -c "gem install bundler --no-rdoc --no-ri"
-RUN echo 'source /etc/profile.d/rvm.sh' >> ~/.bashrc
+RUN cd ~ && curl -o ruby-2.4.0.tar.gz http://cache.ruby-lang.org/pub/ruby/2.4/ruby-2.4.0.tar.gz && \
+    tar zxvf ruby-2.4.0.tar.gz && \
+    cd ruby-2.4.0 && \
+    ./configure --prefix=/usr/local --disable-install-doc && \
+    make && make install && \
+    cd ~ && rm -rf ruby-2.4.0
 
 # v0.3: add_iruby: install iruby
-RUN /bin/bash -l -c "gem install bundle --no-rdoc --no-ri"
-# RUN /bin/bash -l -c "rvm gemset create iruby"
-# RUN cd ~ && /bin/bash -l -c "rvm --ruby-version use 2.4.0@iruby"
-RUN /bin/bash -l -c "gem install cztop --no-rdoc --no-ri"
+RUN gem install cztop --no-rdoc --no-ri
 RUN cd ~ && git clone https://github.com/zeromq/czmq && \
     cd czmq && \
     ./autogen.sh && ./configure && make && make install && \
     cd ~ && rm -rf czmq
-RUN /bin/bash -l -c "gem install iruby --no-rdoc --no-ri"
-RUN IPYTHONDIR=/opt/conda/share/jupyter /bin/bash -l -c "iruby register --force"
+RUN gem install iruby --no-rdoc --no-ri
+RUN IPYTHONDIR=/opt/conda/share/jupyter iruby register --force
 
 # v0.3: add_iruby: install related library and gems
 RUN apt-get install -y gnuplot && \
-    /bin/bash -l -c "gem install pry pry-doc numo-narray numo-gnuplot --no-rdoc --no-ri"
+    gem install pry pry-doc numo-narray numo-gnuplot --no-rdoc --no-ri
 
 # Define working directory.
 WORKDIR /opt/notebooks
