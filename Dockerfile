@@ -38,6 +38,12 @@ RUN PYTHON=/opt/conda/bin/python /opt/julia/bin/julia -e 'Pkg.add("PyPlot")'
 # RUN /opt/julia/bin/julia -e 'Pkg.build("PyPlot")'
 RUN /opt/julia/bin/julia -e 'using PyPlot'
 
+# v0.3: add_iruby: install requirements
+RUN apt-get install -y \
+    gawk g++ gcc libssl-dev make libc6-dev zlib1g-dev libyaml-dev libsqlite3-dev sqlite3 \
+    autoconf libgmp-dev libgdbm-dev libncurses5-dev automake libtool bison pkg-config \
+    libffi-dev libgmp-dev libreadline6-dev 
+
 # v0.3: add_iruby: install ruby-2.4.0
 RUN cd ~ && curl -o ruby-2.4.0.tar.gz http://cache.ruby-lang.org/pub/ruby/2.4/ruby-2.4.0.tar.gz && \
     tar zxvf ruby-2.4.0.tar.gz && \
