@@ -2,7 +2,7 @@ FROM continuumio/anaconda3:4.3.1
 
 MAINTAINER antimon2 <antimon2.me@gmail.com>
 
-# Install Jupyter42.
+# Install Jupyter.
 RUN /opt/conda/bin/conda install jupyter -y --quiet
 
 # Install libzmq
@@ -12,13 +12,13 @@ RUN apt-get update \
     libzmq3-dev \
     libzmq3
 
-# Install Julia0.5.1
-RUN mkdir -p /opt/julia-0.5.1 && \
-    curl -s -L https://julialang.s3.amazonaws.com/bin/linux/x64/0.5/julia-0.5.1-linux-x86_64.tar.gz | tar -C /opt/julia-0.5.1 -x -z --strip-components=1 -f -
-RUN ln -fs /opt/julia-0.5.1 /opt/julia-0.5
+# Install Julia0.5.2
+RUN mkdir -p /opt/julia-0.5.2 && \
+    curl -s -L https://julialang.s3.amazonaws.com/bin/linux/x64/0.5/julia-0.5.2-linux-x86_64.tar.gz | tar -C /opt/julia-0.5.2 -x -z --strip-components=1 -f -
+RUN ln -fs /opt/julia-0.5.2 /opt/julia-0.5
 
-# Make v0.5.1 default julia
-RUN ln -fs /opt/julia-0.5.1 /opt/julia
+# Make v0.5.2 default julia
+RUN ln -fs /opt/julia-0.5.2 /opt/julia
 
 # RUN echo "PATH=\"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/julia/bin\"" > /etc/environment && \
 #     echo "export PATH" >> /etc/environment && \
@@ -34,6 +34,33 @@ RUN /opt/julia/bin/julia -e 'Pkg.build("IJulia");using IJulia'
 RUN PYTHON=/opt/conda/bin/python /opt/julia/bin/julia -e 'Pkg.add("PyPlot")'
 # RUN /opt/julia/bin/julia -e 'Pkg.build("PyPlot")'
 RUN /opt/julia/bin/julia -e 'using PyPlot'
+
+# v0.3: add_iruby: install requirements
+RUN apt-get install -y \
+    gawk g++ gcc libssl-dev make libc6-dev zlib1g-dev libyaml-dev libsqlite3-dev sqlite3 \
+    autoconf libgmp-dev libgdbm-dev libncurses5-dev automake libtool bison pkg-config \
+    libffi-dev libgmp-dev libreadline6-dev 
+
+# v0.3: add_iruby: install ruby-2.4.0
+RUN cd ~ && curl -o ruby-2.4.0.tar.gz http://cache.ruby-lang.org/pub/ruby/2.4/ruby-2.4.0.tar.gz && \
+    tar zxvf ruby-2.4.0.tar.gz && \
+    cd ruby-2.4.0 && \
+    ./configure --prefix=/usr/local --disable-install-doc && \
+    make && make install && \
+    cd ~ && rm -rf ruby-2.4.0
+
+# v0.3: add_iruby: install iruby
+RUN gem install cztop --no-rdoc --no-ri
+RUN cd ~ && git clone https://github.com/zeromq/czmq && \
+    cd czmq && \
+    ./autogen.sh && ./configure && make && make install && \
+    cd ~ && rm -rf czmq
+RUN gem install iruby --no-rdoc --no-ri
+RUN IPYTHONDIR=/opt/conda/share/jupyter iruby register --force
+
+# v0.3: add_iruby: install related library and gems
+RUN apt-get install -y gnuplot && \
+    gem install pry pry-doc numo-narray numo-gnuplot --no-rdoc --no-ri
 
 # Define working directory.
 WORKDIR /opt/notebooks
